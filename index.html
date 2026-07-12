@@ -1,15 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>授業タイマー</title>
-</head>
-<body>
-<h1>授業タイマー</h1>
-<p id="status"></p>
-<p id="time"></p>
-
 <script>
 const schedule = [
   {name:"1限目", start:"09:20", end:"10:10"},
@@ -17,36 +5,45 @@ const schedule = [
   {name:"3限目", start:"11:20", end:"12:10"}
 ];
 
+function toSeconds(time){
+  const [h,m]=time.split(":").map(Number);
+  return h*3600+m*60;
+}
+
 function update(){
   const now=new Date();
-  const m=now.getHours()*60+now.getMinutes();
-  let text="授業は終了しています";
+  const nowSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+
+  let status="授業は終了しています";
   let remain="";
 
-  for(let i=0;i<schedule.length;i++){
-    const s=schedule[i];
-    const start=parseInt(s.start.split(":")[0])*60+parseInt(s.start.split(":")[1]);
-    const end=parseInt(s.end.split(":")[0])*60+parseInt(s.end.split(":")[1]);
+  for(const s of schedule){
+    const start=toSeconds(s.start);
+    const end=toSeconds(s.end);
 
-    if(m>=start && m<end){
-      text=s.name+"中";
-      const r=end-m;
-      remain="残り "+r+" 分";
+    if(nowSec>=start && nowSec<end){
+      const left=end-nowSec;
+      const min=Math.floor(left/60);
+      const sec=left%60;
+      status=`📖 ${s.name}中`;
+      remain=`⏳ 残り ${min}分 ${sec.toString().padStart(2,"0")}秒`;
       break;
     }
-    if(m<start){
-      text="次は"+s.name;
-      remain="開始まで "+(start-m)+" 分";
+
+    if(nowSec<start){
+      const left=start-nowSec;
+      const min=Math.floor(left/60);
+      const sec=left%60;
+      status=`🕒 次は${s.name}`;
+      remain=`開始まで ${min}分 ${sec.toString().padStart(2,"0")}秒`;
       break;
     }
   }
 
-  document.getElementById("status").textContent=text;
+  document.getElementById("status").textContent=status;
   document.getElementById("time").textContent=remain;
 }
 
 update();
 setInterval(update,1000);
 </script>
-</body>
-</html>
