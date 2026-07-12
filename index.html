@@ -1,49 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>授業タイマー</title>
+
+<style>
+body{
+  font-family:sans-serif;
+  background:#f5f5f5;
+  text-align:center;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  border-radius:15px;
+  padding:20px;
+  margin:15px auto;
+  max-width:500px;
+  box-shadow:0 3px 10px rgba(0,0,0,.15);
+}
+
+#status{
+  font-size:30px;
+  font-weight:bold;
+}
+
+#time{
+  font-size:40px;
+  color:#1e88e5;
+  font-weight:bold;
+}
+
+#keywords p{
+  font-size:22px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+<h1>📚 授業タイマー</h1>
+
+<p id="status"></p>
+
+<p id="time"></p>
+
+</div>
+
+<div class="card">
+
+<div id="keywords">
+読み込み中...
+</div>
+
+</div>
+
 <script>
-const schedule = [
-  {name:"1限目", start:"09:20", end:"10:10"},
-  {name:"2限目", start:"10:20", end:"11:10"},
-  {name:"3限目", start:"11:20", end:"12:10"}
+
+const schedule=[
+{name:"1限目",start:"09:20",end:"10:10"},
+{name:"2限目",start:"10:20",end:"11:10"},
+{name:"3限目",start:"11:20",end:"12:10"}
 ];
 
 function toSeconds(time){
-  const [h,m]=time.split(":").map(Number);
-  return h*3600+m*60;
+const[h,m]=time.split(":").map(Number);
+return h*3600+m*60;
 }
 
 function update(){
-  const now=new Date();
-  const nowSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
 
-  let status="授業は終了しています";
-  let remain="";
+const now=new Date();
+const nowSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
 
-  for(const s of schedule){
-    const start=toSeconds(s.start);
-    const end=toSeconds(s.end);
+let status="授業は終了しています";
+let remain="";
 
-    if(nowSec>=start && nowSec<end){
-      const left=end-nowSec;
-      const min=Math.floor(left/60);
-      const sec=left%60;
-      status=`📖 ${s.name}中`;
-      remain=`⏳ 残り ${min}分 ${sec.toString().padStart(2,"0")}秒`;
-      break;
-    }
+for(const s of schedule){
 
-    if(nowSec<start){
-      const left=start-nowSec;
-      const min=Math.floor(left/60);
-      const sec=left%60;
-      status=`🕒 次は${s.name}`;
-      remain=`開始まで ${min}分 ${sec.toString().padStart(2,"0")}秒`;
-      break;
-    }
-  }
+const start=toSeconds(s.start);
+const end=toSeconds(s.end);
 
-  document.getElementById("status").textContent=status;
-  document.getElementById("time").textContent=remain;
+if(nowSec>=start&&nowSec<end){
+
+const left=end-nowSec;
+
+status=`📖 ${s.name}中`;
+
+remain=`⏳ 残り ${Math.floor(left/60)}分 ${String(left%60).padStart(2,"0")}秒`;
+
+break;
+
+}
+
+if(nowSec<start){
+
+const left=start-nowSec;
+
+status=`🕒 次は${s.name}`;
+
+remain=`開始まで ${Math.floor(left/60)}分 ${String(left%60).padStart(2,"0")}秒`;
+
+break;
+
+}
+
+}
+
+document.getElementById("status").textContent=status;
+
+document.getElementById("time").textContent=remain;
+
 }
 
 update();
+
 setInterval(update,1000);
+
+async function loadKeywords(){
+
+const url="https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
+
+const res=await fetch(url);
+
+const data=await res.json();
+
+let html="<h2>📚 今日の授業キーワード</h2>";
+
+data.forEach(item=>{
+
+if(item.type==="授業"){
+
+html+=`<p>${item.subject}：${item.lessonKey}</p>`;
+
+}else{
+
+if(item.mode==="登校") html+=`<p>🏫 登校：${item.inKey}</p>`;
+
+if(item.mode==="下校") html+=`<p>🏠 下校：${item.outKey}</p>`;
+
+}
+
+});
+
+document.getElementById("keywords").innerHTML=html;
+
+}
+
+loadKeywords();
+
+setInterval(loadKeywords,30000);
+
 </script>
+
+</body>
+
+</html>
