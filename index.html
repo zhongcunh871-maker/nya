@@ -346,7 +346,7 @@
 </div>
 
 <script>
-    // --- 【設定完了】連携するGASのURLを埋め込み済みです ---
+    // --- 【設定完了】提供されたURLを埋め込み済みです ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
 
     // --- 3限制 授業時間割データ ---
@@ -445,12 +445,16 @@
 
     function parseItemDate(dateInput) {
         if (!dateInput) return "";
-        const d = new Date(dateInput);
+        let d = new Date(dateInput);
+        if (isNaN(d.getTime())) {
+            // スラッシュ区切りの文字列(2026/07/13)でも解釈できるようにハイフン変換を試行
+            d = new Date(String(dateInput).replace(/\//g, '-'));
+        }
         if (isNaN(d.getTime())) return "";
         return formatDateLocal(d);
     }
 
-    // --- キーワードデータ読み込み・安全フォールバック ---
+    // --- キーワードデータ読み込み・スプレッドシートの日本語ヘッダーに対応 ---
     async function loadKeywords() {
         const todayBox = document.getElementById("today");
         const historyBox = document.getElementById("history");
@@ -461,7 +465,7 @@
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 6000); // 6秒でタイムアウト
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
 
             const res = await fetch(GAS_URL, { 
                 method: "GET",
@@ -471,7 +475,7 @@
             clearTimeout(timeoutId);
 
             if (!res.ok) {
-                throw new Error(`HTTPステータスエラー: ${res.status}`);
+                throw new Error(`HTTPエラー: ${res.status}`);
             }
 
             const responseText = await res.text();
@@ -480,8 +484,8 @@
                 data = JSON.parse(responseText);
                 noticeEl.style.display = 'none';
             } catch (jsonErr) {
-                console.error("データパース失敗。GAS応答:", responseText);
-                throw new Error("GASがJSON以外のデータを返しました（公開設定エラーの疑い）。");
+                console.error("パース失敗。GAS応答:", responseText);
+                throw new Error("GASがJSON以外のデータを返しました。デプロイ権限を確認してください。");
             }
 
         } catch (e) {
@@ -490,17 +494,14 @@
             noticeEl.innerHTML = `⚠️ サーバー非同期（デモデータ稼働中）<br><span style="font-size:10px; opacity:0.85;">事由: ${errorDetail}</span>`;
             noticeEl.style.display = 'block';
 
-            // 3限スケジュールに調和したダミーデータ
+            // 接続エラー時のバックアップ用デモデータ
             const today = new Date();
             const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-            const dayBefore = new Date(today); dayBefore.setDate(dayBefore.getDate() - 2);
 
             data = [
-                { date: formatDateLocal(today), mode: "登校", inKey: "本日も安全第一に登校しました" },
-                { date: formatDateLocal(today), type: "授業", subject: "プログラミング", lessonKey: "JavaScriptでつくる非同期処理Webアプリ開発" },
-                { date: formatDateLocal(yesterday), mode: "下校", outKey: "3限お疲れ様でした！また明日！" },
-                { date: formatDateLocal(yesterday), type: "授業", subject: "ウェブデザイン", lessonKey: "FlexboxとGridを活用したレスポンシブデザイン" },
-                { date: formatDateLocal(dayBefore), type: "授業", subject: "情報分析", lessonKey: "Git & GitHubを用いた効率的なバージョン管理手法" }
+                { "日付": formatDateLocal(today), "キーワードの種類": "登下校", "登下校": "登校", "登校キーワード": "10366" },
+                { "日付": formatDateLocal(today), "キーワードの種類": "授業", "時間": "1限目", "授業キーワード": "プログラミング基礎" },
+                { "日付": formatDateLocal(yesterday), "キーワードの種類": "登下校", "登下校": "下校", "下校キーワード": "お疲れ様でした！" }
             ];
         }
 
@@ -508,7 +509,8 @@
         const groups = {};
 
         for (const item of data) {
-            const dStr = parseItemDate(item.date);
+            // スプレッドシートの「日付」列から取得
+            const dStr = parseItemDate(item["日付"]);
             if (!dStr) continue;
 
             if (!groups[dStr]) groups[dStr] = [];
@@ -550,21 +552,29 @@
         historyBox.innerHTML = historyHTML;
     }
 
+    // --- 各フォームの値をカード型UIに組み立てる処理 ---
     function createCard(item) {
         let label = "その他";
         let typeClass = "class";
         let icon = "📝";
         let rawText = "";
 
-        if (item.mode === "登校") {
-            icon = "🏫"; label = "登校"; typeClass = "in"; rawText = item.inKey;
-        } else if (item.mode === "下校") {
-            icon = "🏠"; label = "下校"; typeClass = "out"; rawText = item.outKey;
-        } else if (item.type === "授業") {
-            icon = "📚"; label = item.subject || "授業"; typeClass = "class"; rawText = item.lessonKey;
+        // スプレッドシートの「キーワードの種類」列（登下校 or 授業）で分岐
+        const type = item["キーワードの種類"];
+
+        if (type === "登下校") {
+            const mode = item["登下校"]; // 「登校」または「下校」
+            if (mode === "登校") {
+                icon = "🏫"; label = "登校"; typeClass = "in"; rawText = item["登校キーワード"];
+            } else if (mode === "下校") {
+                icon = "🏠"; label = "下校"; typeClass = "out"; rawText = item["下校キーワード"];
+            }
+        } else if (type === "授業") {
+            // 「時間」列（1限目、2限目など）をラベルにする
+            icon = "📚"; label = item["時間"] || "授業"; typeClass = "class"; rawText = item["授業キーワード"];
         }
 
-        let displayText = rawText && rawText.trim() !== "" 
+        let displayText = rawText && String(rawText).trim() !== "" 
             ? rawText 
             : `<span class="empty-key">未登録</span>`;
 
