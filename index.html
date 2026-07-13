@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -267,6 +268,15 @@
             letter-spacing: 0.5px;
         }
 
+        /* エラーメッセージ用 */
+        .system-notice {
+            font-size: 12px;
+            color: var(--yellow);
+            text-align: center;
+            margin-top: 8px;
+            display: none;
+        }
+
         @media (max-width: 600px) {
             .wrapper { padding: 15px 10px; }
             .card { padding: 20px; border-radius: 16px; }
@@ -314,6 +324,7 @@
         <div class="section">
             <div class="title">✨ 今日のキーワード</div>
             <div id="today" class="box"></div>
+            <div id="demo-notice" class="system-notice">※GASと通信できなかったため、デモデータを表示しています</div>
         </div>
 
         <div class="section">
@@ -322,7 +333,7 @@
         </div>
 
         <div class="line">
-            <a href="https://lin.ee/YkfIPJ8">
+            <a href="https://lin.ee/YkfIPJ8" target="_blank" rel="noopener noreferrer">
                 <img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="友だち追加">
             </a>
         </div>
@@ -334,10 +345,13 @@
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
 
+    // --- 時間割設定 ---
     const schedule = [
         { name: "1限", start: "09:20", end: "10:10" },
         { name: "2限", start: "10:20", end: "11:10" },
-        { name: "3限", start: "11:20", end: "12:10" }
+        { name: "3限", start: "11:20", end: "12:10" },
+        { name: "昼休み", start: "12:10", end: "13:00" },
+        { name: "4限", start: "13:00", end: "13:50" }
     ];
 
     const radius = 110;
@@ -363,6 +377,7 @@
         return `${y}-${m}-${d}`;
     }
 
+    // --- タイマー処理 ---
     function tick() {
         const now = new Date();
         dateEl.textContent = now.toLocaleDateString("ja-JP", { dateStyle: "full" });
@@ -370,8 +385,8 @@
 
         const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
 
-        let msg = "🎉 今日の授業はすべて終了しました";
-        let rem = "";
+        let msg = "🎉 今日のスケジュールはすべて終了しました";
+        let rem = "お疲れ様でした";
         let percent = 100;
         let left = 99999;
         let isBreak = false;
@@ -381,6 +396,7 @@
             const start = sec(current.start);
             const end = sec(current.end);
 
+            // まだ授業が始まっていない場合（スタンドバイ or 休み時間）
             if (nowSec < start) {
                 if (i > 0 && nowSec >= sec(schedule[i - 1].end)) {
                     const breakStart = sec(schedule[i - 1].end);
@@ -398,9 +414,12 @@
                 break;
             }
 
+            // 授業進行中の場合
             if (nowSec >= start && nowSec < end) {
                 left = end - nowSec;
-                msg = `⚡️ ${current.name} 進行中`;
+                // 名前に「休み」が含まれているかでモード判定
+                isBreak = current.name.includes("休み");
+                msg = isBreak ? `☕️ ${current.name} 進行中` : `⚡️ ${current.name} 進行中`;
                 rem = `残り ${Math.floor(left / 60)}分 ${String(left % 60).padStart(2, "0")}秒`;
                 percent = ((nowSec - start) / (end - start)) * 100;
                 break;
@@ -433,67 +452,94 @@
         return formatDateLocal(d);
     }
 
+    // --- データ取得処理 (堅牢化) ---
     async function loadKeywords() {
         const todayBox = document.getElementById("today");
         const historyBox = document.getElementById("history");
+        const noticeEl = document.getElementById("demo-notice");
+
+        let data = [];
+        let isDemoData = false;
 
         try {
-            const res = await fetch(GAS_URL);
-            if (!res.ok) throw new Error("Fetch failed");
-            const data = await res.json();
+            // タイムアウト付きのフェッチを実装してフリーズを防ぐ
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒でタイムアウト
 
-            const todayStr = formatDateLocal(new Date());
-            const groups = {};
-
-            for (const item of data) {
-                const dStr = parseItemDate(item.date);
-                if (!dStr) continue;
-
-                if (!groups[dStr]) groups[dStr] = [];
-                groups[dStr].push(item);
-            }
-
-            // 1. 今日のキーワード描画
-            let todayHTML = "";
-            if (groups[todayStr]) {
-                groups[todayStr].forEach(item => { todayHTML += createCard(item, false); });
-            } else {
-                todayHTML = `<div class="keyword" style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">本日のキーワードデータはまだありません</div>`;
-            }
-            todayBox.innerHTML = todayHTML;
-
-            // 2. 過去履歴の描画 (直近3日間に制限)
-            let historyHTML = "";
-            const pastDates = Object.keys(groups)
-                .filter(date => date !== todayStr)
-                .sort()
-                .reverse()
-                .slice(0, 3);
-
-            if (pastDates.length > 0) {
-                pastDates.forEach(date => {
-                    historyHTML += `
-                        <div>
-                            <div class="history-day-title">📅 ${date.replace(/-/g, '/')}</div>
-                            <div class="box" style="margin-top: 10px;">
-                    `;
-                    groups[date].forEach(item => {
-                        historyHTML += createCard(item, true);
-                    });
-                    historyHTML += `</div></div>`;
-                });
-            } else {
-                historyHTML = `<div class="keyword" style="text-align: center; color: var(--text-muted);">過去3日間の履歴ログはありません</div>`;
-            }
-            historyBox.innerHTML = historyHTML;
+            const res = await fetch(GAS_URL, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            data = await res.json();
+            noticeEl.style.display = 'none';
 
         } catch (e) {
-            todayBox.innerHTML = `<div class="keyword" style="grid-column: 1/-1; color: var(--red);">⚠️ システム同期エラー</div>`;
-            console.error(e);
+            console.warn("GAS通信エラーのため、フォールバックのデモデータを使用します:", e);
+            isDemoData = true;
+            noticeEl.style.display = 'block';
+
+            // エラー時でも画面が崩れないようにデモデータを用意
+            const today = new Date();
+            const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+            const dayBefore = new Date(today); dayBefore.setDate(dayBefore.getDate() - 2);
+
+            data = [
+                { date: formatDateLocal(today), mode: "登校", inKey: "おはようございます！今日も頑張ります" },
+                { date: formatDateLocal(today), type: "授業", subject: "1限", lessonKey: "JavaScriptの非同期処理について" },
+                { date: formatDateLocal(yesterday), mode: "下校", outKey: "本日の課題完了。さようなら！" },
+                { date: formatDateLocal(yesterday), type: "授業", subject: "3限", lessonKey: "UI/UXデザインの基礎" },
+                { date: formatDateLocal(dayBefore), type: "授業", subject: "2限", lessonKey: "ネットワークセキュリティ" }
+            ];
         }
+
+        // データのグループ化と描画
+        const todayStr = formatDateLocal(new Date());
+        const groups = {};
+
+        for (const item of data) {
+            const dStr = parseItemDate(item.date);
+            if (!dStr) continue;
+
+            if (!groups[dStr]) groups[dStr] = [];
+            groups[dStr].push(item);
+        }
+
+        // 1. 今日のキーワード描画
+        let todayHTML = "";
+        if (groups[todayStr] && groups[todayStr].length > 0) {
+            groups[todayStr].forEach(item => { todayHTML += createCard(item); });
+        } else {
+            todayHTML = `<div class="keyword" style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">本日のキーワードデータはまだありません</div>`;
+        }
+        todayBox.innerHTML = todayHTML;
+
+        // 2. 過去履歴の描画 (直近3日間に制限)
+        let historyHTML = "";
+        const pastDates = Object.keys(groups)
+            .filter(date => date !== todayStr)
+            .sort()
+            .reverse()
+            .slice(0, 3);
+
+        if (pastDates.length > 0) {
+            pastDates.forEach(date => {
+                historyHTML += `
+                    <div>
+                        <div class="history-day-title">📅 ${date.replace(/-/g, '/')}</div>
+                        <div class="box" style="margin-top: 10px;">
+                `;
+                groups[date].forEach(item => {
+                    historyHTML += createCard(item);
+                });
+                historyHTML += `</div></div>`;
+            });
+        } else {
+            historyHTML = `<div class="keyword" style="text-align: center; color: var(--text-muted);">過去3日間の履歴ログはありません</div>`;
+        }
+        historyBox.innerHTML = historyHTML;
     }
 
-    function createCard(item, isHistory) {
+    function createCard(item) {
         let label = "その他";
         let typeClass = "class";
         let icon = "📝";
@@ -523,6 +569,7 @@
         `;
     }
 
+    // --- 初期化とループ ---
     tick();
     setInterval(tick, 1000);
     loadKeywords();
@@ -531,7 +578,10 @@
         await loadKeywords();
         setTimeout(daemon, 30000);
     }
-    setTimeout(daemon, 30000);
+    setTimeout(daemon, 30000); // 30秒ごとに更新
 </script>
 </body>
 </html>
+
+
+```
