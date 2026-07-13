@@ -1,1063 +1,537 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>授業タイマー Ultimate</title>
-
-
-<style>
-
-:root{
---bg1:#020617;
---bg2:#1d4ed8;
---cyan:#06b6d4;
---green:#22c55e;
---yellow:#eab308;
---red:#ef4444;
-}
-
-
-*{
-box-sizing:border-box;
-}
-
-
-body{
-
-margin:0;
-
-min-height:100vh;
-
-font-family:
-system-ui,
-"Noto Sans JP",
-sans-serif;
-
-color:white;
-
-
-background:
-linear-gradient(
--45deg,
-#020617,
-#1e3a8a,
-#2563eb,
-#06b6d4
-);
-
-
-background-size:400% 400%;
-
-animation:
-bg 15s infinite;
-
-
-}
-
-
-
-@keyframes bg{
-
-0%{
-background-position:0% 50%;
-}
-
-50%{
-background-position:100% 50%;
-}
-
-100%{
-background-position:0% 50%;
-}
-
-}
-
-
-
-.wrapper{
-
-max-width:1000px;
-
-margin:auto;
-
-padding:20px;
-
-}
-
-
-
-.card{
-
-background:
-rgba(255,255,255,.12);
-
-
-backdrop-filter:
-blur(20px);
-
-
-border-radius:30px;
-
-
-padding:25px;
-
-
-border:
-1px solid rgba(255,255,255,.25);
-
-
-box-shadow:
-0 25px 70px rgba(0,0,0,.4);
-
-}
-
-
-
-h1{
-
-text-align:center;
-
-font-size:
-clamp(28px,5vw,45px);
-
-margin:0;
-
-}
-
-
-
-.date{
-
-text-align:center;
-
-opacity:.8;
-
-margin-top:10px;
-
-}
-
-
-
-
-/* 円形タイマー */
-
-
-.timer{
-
-display:flex;
-
-justify-content:center;
-
-margin:35px;
-
-}
-
-
-
-.circle{
-
-position:relative;
-
-width:280px;
-
-height:280px;
-
-}
-
-
-
-svg{
-
-transform:rotate(-90deg);
-
-}
-
-
-
-.bg-circle{
-
-fill:none;
-
-stroke:
-rgba(255,255,255,.15);
-
-stroke-width:18;
-
-}
-
-
-
-.progress-circle{
-
-fill:none;
-
-stroke:
-url(#color);
-
-stroke-width:18;
-
-stroke-linecap:round;
-
-transition:
-stroke-dashoffset 1s linear;
-
-}
-
-
-
-.center{
-
-position:absolute;
-
-top:50%;
-
-left:50%;
-
-transform:
-translate(-50%,-50%);
-
-text-align:center;
-
-}
-
-
-
-.clock{
-
-font-size:38px;
-
-font-weight:900;
-
-}
-
-
-
-.remain{
-
-font-size:22px;
-
-color:#fde68a;
-
-}
-
-
-
-.status{
-
-text-align:center;
-
-font-size:28px;
-
-font-weight:bold;
-
-margin:15px;
-
-}
-
-
-
-.flash{
-
-animation:
-flash .8s infinite;
-
-}
-
-
-@keyframes flash{
-
-50%{
-opacity:.3;
-}
-
-}
-
-
-
-
-
-.section{
-
-margin-top:35px;
-
-}
-
-
-
-.title{
-
-font-size:26px;
-
-font-weight:bold;
-
-border-bottom:
-2px solid rgba(255,255,255,.3);
-
-padding-bottom:8px;
-
-}
-
-
-
-.box{
-
-margin-top:15px;
-
-display:grid;
-
-gap:12px;
-
-}
-
-
-
-.keyword{
-
-background:
-rgba(255,255,255,.12);
-
-border-radius:18px;
-
-padding:15px;
-
-}
-
-
-
-.today{
-
-border-left:
-5px solid #22c55e;
-
-}
-
-
-.history{
-
-border-left:
-5px solid #38bdf8;
-
-}
-
-
-
-.line{
-
-text-align:center;
-
-margin-top:35px;
-
-}
-
-
-
-.line img{
-
-height:50px;
-
-}
-
-
-
-.footer{
-
-text-align:center;
-
-opacity:.7;
-
-margin-top:20px;
-
-}
-
-
-
-
-@media(max-width:600px){
-
-.circle{
-
-width:220px;
-
-height:220px;
-
-}
-
-
-.clock{
-
-font-size:30px;
-
-}
-
-
-.status{
-
-font-size:22px;
-
-}
-
-
-}
-
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>授業タイマー Ultimate Cyber</title>
+    <style>
+        :root {
+            --bg-dark: #030712;
+            --panel-bg: rgba(15, 23, 42, 0.45);
+            --panel-border: rgba(6, 182, 212, 0.25);
+            --cyan: #06b6d4;
+            --cyan-glow: rgba(6, 182, 212, 0.4);
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.4);
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --text-muted: rgba(156, 163, 175, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans JP", sans-serif;
+            color: #f3f4f6;
+            background: radial-gradient(circle at 50% 10%, #0f172a 0%, var(--bg-dark) 70%);
+            background-attachment: fixed;
+        }
+
+        .wrapper {
+            max-width: 900px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 24px;
+            padding: 35px;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(24px, 4.5vw, 36px);
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #ffffff, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .date {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        /* 円形タイマー */
+        .timer {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .circle {
+            position: relative;
+            width: 260px;
+            height: 260px;
+        }
+
+        svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 12px var(--cyan-glow));
+        }
+
+        .bg-circle {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 14;
+        }
+
+        .progress-circle {
+            fill: none;
+            stroke: url(#color-class);
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s linear;
+        }
+
+        .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 100%;
+        }
+
+        .clock {
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .remain {
+            font-size: 15px;
+            color: #fde68a;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 35px;
+            color: #ffffff;
+        }
+
+        .flash {
+            animation: flash .8s infinite alternate;
+        }
+
+        @keyframes flash {
+            100% { opacity: 0.3; text-shadow: 0 0 8px var(--red); color: var(--red); }
+        }
+
+        /* セクション設計 */
+        .section {
+            margin-top: 40px;
+        }
+
+        .title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(6, 182, 212, 0.3), transparent);
+        }
+
+        .box {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        /* キーワードカードデザイン */
+        .keyword {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .keyword:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .keyword-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* モードバッジ */
+        .badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge.class { color: var(--cyan); background: rgba(6, 182, 212, 0.15); }
+        .badge.in { color: var(--green); background: rgba(16, 185, 129, 0.15); }
+        .badge.out { color: #f43f5e; background: rgba(244, 63, 94, 0.15); }
+
+        .keyword-date {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: auto;
+            font-weight: 500;
+        }
+
+        .keyword-body {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            word-break: break-all;
+        }
+
+        .empty-key {
+            color: rgba(255, 255, 255, 0.25);
+            font-weight: 400;
+            font-size: 14px;
+        }
+
+        /* 過去のセクション専用のコンテナ */
+        .history-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .history-day-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: -4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .line {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .line img {
+            height: 44px;
+            opacity: 0.8;
+        }
+
+        .line img:hover {
+            opacity: 1;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 25px;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 600px) {
+            .wrapper { padding: 15px 10px; }
+            .card { padding: 20px; border-radius: 16px; }
+            .circle { width: 200px; height: 200px; }
+            .clock { font-size: 32px; }
+            .status { font-size: 18px; }
+            .box { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
-
-
 <body>
 
-
 <div class="wrapper">
+    <div class="card">
+        <h1>📚 授業タイマー Ultimate</h1>
+        <div class="date" id="date"></div>
 
+        <div class="timer">
+            <div class="circle">
+                <svg viewBox="0 0 280 280">
+                    <defs>
+                        <linearGradient id="color-class">
+                            <stop offset="0%" stop-color="#06b6d4"/>
+                            <stop offset="50%" stop-color="#10b981"/>
+                            <stop offset="100%" stop-color="#ef4444"/>
+                        </linearGradient>
+                        <linearGradient id="color-break">
+                            <stop offset="0%" stop-color="#3b82f6"/>
+                            <stop offset="100%" stop-color="#06b6d4"/>
+                        </linearGradient>
+                    </defs>
+                    <circle class="bg-circle" cx="140" cy="140" r="110"/>
+                    <circle id="progress" class="progress-circle" cx="140" cy="140" r="110"/>
+                </svg>
 
-<div class="card">
+                <div class="center">
+                    <div class="clock" id="clock">00:00:00</div>
+                    <div class="remain" id="remain">ONLINE</div>
+                </div>
+            </div>
+        </div>
 
+        <div class="status" id="status">SYSTEM READY</div>
 
-<h1>
-📚 授業タイマー Ultimate
-</h1>
+        <div class="section">
+            <div class="title">✨ 今日のキーワード</div>
+            <div id="today" class="box"></div>
+        </div>
 
+        <div class="section">
+            <div class="title">⏳ 過去ログ (直近3日間)</div>
+            <div id="history" class="history-container"></div>
+        </div>
 
-<div class="date" id="date"></div>
+        <div class="line">
+            <a href="https://lin.ee/YkfIPJ8">
+                <img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="友だち追加">
+            </a>
+        </div>
 
-
-
-<div class="timer">
-
-
-<div class="circle">
-
-
-<svg width="280" height="280">
-
-
-<defs>
-
-<linearGradient id="color">
-
-<stop offset="0%" stop-color="#22c55e"/>
-
-<stop offset="50%" stop-color="#eab308"/>
-
-<stop offset="100%" stop-color="#ef4444"/>
-
-</linearGradient>
-
-
-</defs>
-
-
-<circle
-class="bg-circle"
-cx="140"
-cy="140"
-r="110"
-/>
-
-
-<circle
-id="progress"
-class="progress-circle"
-cx="140"
-cy="140"
-r="110"
-/>
-
-
-</svg>
-
-
-
-<div class="center">
-
-
-<div class="clock" id="clock">
-00:00:00
+        <div class="footer">POWERED BY GOOGLE APPS SCRIPT</div>
+    </div>
 </div>
-
-
-<div class="remain" id="remain">
-起動中
-</div>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-<div class="status" id="status">
-
-起動中...
-
-</div>
-
-
-
-
-<div class="section">
-
-
-<div class="title">
-
-📌 今日のキーワード
-
-</div>
-
-
-<div id="today" class="box">
-
-読み込み中...
-
-</div>
-
-
-</div>
-
-
-
-
-<div class="section">
-
-
-<div class="title">
-
-📚 過去のキーワード履歴
-
-</div>
-
-
-<div id="history" class="box">
-
-読み込み中...
-
-</div>
-
-
-</div>
-
-
-
-<div class="line">
-
-<a href="https://lin.ee/YkfIPJ8">
-
-<img
-src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png"
-alt="友だち追加">
-
-</a>
-
-</div>
-
-
-
-<div class="footer">
-
-Google Apps Script 連携
-
-</div>
-
-
-</div>
-
-</div>
-
 
 <script>
-
-
-const GAS_URL =
-"https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
-
-
-const schedule=[
-
-{
-name:"1限",
-start:"09:20",
-end:"10:10"
-},
-
-{
-name:"2限",
-start:"10:20",
-end:"11:10"
-},
-
-{
-name:"3限",
-start:"11:20",
-end:"12:10"
-}
-
-];
-
-
-
-const radius=110;
-
-
-const circleLength=
-2*Math.PI*radius;
-
-
-progress.style.strokeDasharray=
-circleLength;
-
-
-progress.style.strokeDashoffset=
-circleLength;
-
-
-
-function sec(t){
-
-let [h,m]=t.split(":").map(Number);
-
-return h*3600+m*60;
-
-}
-
-
-let sound=false;
-
-
-function tick(){
-
-const now=new Date();
-
-
-date.textContent=
-now.toLocaleDateString(
-"ja-JP",
-{
-dateStyle:"full"
-}
-);
-
-
-
-clock.textContent=
-now.toLocaleTimeString(
-"ja-JP"
-);
-
-
-
-const nowSec=
-now.getHours()*3600+
-now.getMinutes()*60+
-now.getSeconds();
-
-
-
-let msg="🎉 今日の授業は終了しました";
-
-let rem="";
-
-let percent=100;
-
-let left=99999;
-
-
-
-for(const s of schedule){
-
-let start=sec(s.start);
-
-let end=sec(s.end);
-
-
-
-if(nowSec<start){
-
-left=start-nowSec;
-
-msg="🕒 次は "+s.name;
-
-rem=
-"開始まで "+
-Math.floor(left/60)+
-"分 "+
-String(left%60).padStart(2,"0")+
-"秒";
-
-percent=0;
-
-break;
-
-}
-
-
-
-if(nowSec>=start && nowSec<end){
-
-left=end-nowSec;
-
-msg="📖 "+s.name+" 授業中";
-
-rem=
-"残り "+
-Math.floor(left/60)+
-"分 "+
-String(left%60).padStart(2,"0")+
-"秒";
-
-
-percent=
-((nowSec-start)/(end-start))*100;
-
-
-break;
-
-}
-
-}
-
-
-status.textContent=msg;
-
-remain.textContent=rem;
-
-
-progress.style.strokeDashoffset=
-circleLength -
-(circleLength*percent/100);
-
-
-
-if(left<=300){
-
-remain.classList.add("flash");
-
-}else{
-
-remain.classList.remove("flash");
-
-}
-
-
-}
-
-
-tick();
-
-setInterval(tick,1000);
-// =============================
-// GAS キーワード取得システム
-// =============================
-
-
-async function loadKeywords(){
-
-
-const todayBox =
-document.getElementById("today");
-
-
-const historyBox =
-document.getElementById("history");
-
-
-
-try{
-
-
-const res =
-await fetch(GAS_URL);
-
-
-
-const data =
-await res.json();
-
-
-
-const today =
-new Date()
-.toLocaleDateString("sv-SE");
-
-
-
-const groups={};
-
-
-
-for(const item of data){
-
-
-if(!item.date)
-continue;
-
-
-
-const d =
-new Date(item.date)
-.toLocaleDateString("sv-SE");
-
-
-
-if(!groups[d]){
-
-groups[d]=[];
-
-}
-
-
-groups[d].push(item);
-
-
-}
-
-
-
-
-// =====================
-// 今日
-// =====================
-
-
-let todayHTML="";
-
-
-
-if(groups[today]){
-
-
-groups[today]
-.forEach(item=>{
-
-
-todayHTML += createCard(item);
-
-
-});
-
-
-}else{
-
-
-todayHTML=
-`
-<div class="keyword today">
-🎌 本日のキーワードはありません
-</div>
-`;
-
-}
-
-
-
-todayBox.innerHTML=
-todayHTML;
-
-
-
-
-// =====================
-// 過去履歴
-// =====================
-
-
-let historyHTML="";
-
-
-
-Object.keys(groups)
-
-.sort()
-
-.reverse()
-
-.forEach(date=>{
-
-
-if(date===today)
-return;
-
-
-
-historyHTML +=
-`
-
-<div class="keyword history">
-
-<b>
-📅 ${date}
-</b>
-
-<br><br>
-
-`;
-
-
-
-groups[date].forEach(item=>{
-
-
-historyHTML +=
-createCard(item);
-
-
-});
-
-
-
-historyHTML +=
-
-`
-
-</div>
-
-`;
-
-
-
-});
-
-
-
-historyBox.innerHTML=
-historyHTML ||
-`
-<div class="keyword history">
-
-まだ履歴がありません
-
-</div>
-`;
-
-
-
-}catch(e){
-
-
-todayBox.innerHTML=
-`
-<div class="keyword">
-
-⚠️ キーワード取得失敗
-
-</div>
-`;
-
-
-historyBox.innerHTML="";
-
-
-console.error(e);
-
-
-}
-
-
-}
-
-
-
-
-
-// =============================
-// カード生成
-// =============================
-
-
-function createCard(item){
-
-
-let icon="📝";
-
-let title="その他";
-
-let text="";
-
-
-
-if(item.mode==="登校"){
-
-
-icon="🏫";
-
-title="登校";
-
-text=item.inKey || "";
-
-
-
-}else if(item.mode==="下校"){
-
-
-icon="🏠";
-
-title="下校";
-
-text=item.outKey || "";
-
-
-
-}else if(item.type==="授業"){
-
-
-icon="📚";
-
-title=item.subject || "授業";
-
-text=item.lessonKey || "";
-
-
-}
-
-
-
-
-return `
-
-<div class="keyword">
-
-${icon}
-
-<b>${title}</b>
-
-<br>
-
-${text}
-
-</div>
-
-`;
-
-}
-
-
-
-
-
-loadKeywords();
-
-
-
-setInterval(
-loadKeywords,
-30000
-);
-
-
-
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
+
+    const schedule = [
+        { name: "1限", start: "09:20", end: "10:10" },
+        { name: "2限", start: "10:20", end: "11:10" },
+        { name: "3限", start: "11:20", end: "12:10" }
+    ];
+
+    const radius = 110;
+    const circleLength = 2 * Math.PI * radius;
+    const progress = document.getElementById("progress");
+    const dateEl = document.getElementById("date");
+    const clockEl = document.getElementById("clock");
+    const statusEl = document.getElementById("status");
+    const remainEl = document.getElementById("remain");
+
+    progress.style.strokeDasharray = circleLength;
+    progress.style.strokeDashoffset = circleLength;
+
+    function sec(t) {
+        let [h, m] = t.split(":").map(Number);
+        return h * 3600 + m * 60;
+    }
+
+    function formatDateLocal(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const d = String(dateObj.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    }
+
+    function tick() {
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString("ja-JP", { dateStyle: "full" });
+        clockEl.textContent = now.toLocaleTimeString("ja-JP");
+
+        const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+        let msg = "🎉 今日の授業はすべて終了しました";
+        let rem = "";
+        let percent = 100;
+        let left = 99999;
+        let isBreak = false;
+
+        for (let i = 0; i < schedule.length; i++) {
+            const current = schedule[i];
+            const start = sec(current.start);
+            const end = sec(current.end);
+
+            if (nowSec < start) {
+                if (i > 0 && nowSec >= sec(schedule[i - 1].end)) {
+                    const breakStart = sec(schedule[i - 1].end);
+                    left = start - nowSec;
+                    msg = `☕️ 休み時間 (${schedule[i - 1].name} ➔ ${current.name})`;
+                    rem = `次まで ${Math.floor(left / 60)}分 ${String(left % 60).padStart(2, "0")}秒`;
+                    percent = ((nowSec - breakStart) / (start - breakStart)) * 100;
+                    isBreak = true;
+                } else {
+                    left = start - nowSec;
+                    msg = `🕒 スタンドバイ: ${current.name}`;
+                    rem = `開始まで ${Math.floor(left / 60)}分 ${String(left % 60).padStart(2, "0")}秒`;
+                    percent = 0;
+                }
+                break;
+            }
+
+            if (nowSec >= start && nowSec < end) {
+                left = end - nowSec;
+                msg = `⚡️ ${current.name} 進行中`;
+                rem = `残り ${Math.floor(left / 60)}分 ${String(left % 60).padStart(2, "0")}秒`;
+                percent = ((nowSec - start) / (end - start)) * 100;
+                break;
+            }
+        }
+
+        if (isBreak) {
+            progress.style.stroke = "url(#color-break)";
+            document.querySelector('svg').style.filter = "drop-shadow(0 0 12px rgba(59, 130, 246, 0.4))";
+        } else {
+            progress.style.stroke = "url(#color-class)";
+            document.querySelector('svg').style.filter = "drop-shadow(0 0 12px var(--cyan-glow))";
+        }
+
+        statusEl.textContent = msg;
+        remainEl.textContent = rem;
+        progress.style.strokeDashoffset = circleLength - (circleLength * percent / 100);
+
+        if (left <= 300 && percent < 100 && !isBreak) {
+            remainEl.classList.add("flash");
+        } else {
+            remainEl.classList.remove("flash");
+        }
+    }
+
+    function parseItemDate(dateInput) {
+        if (!dateInput) return "";
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return "";
+        return formatDateLocal(d);
+    }
+
+    async function loadKeywords() {
+        const todayBox = document.getElementById("today");
+        const historyBox = document.getElementById("history");
+
+        try {
+            const res = await fetch(GAS_URL);
+            if (!res.ok) throw new Error("Fetch failed");
+            const data = await res.json();
+
+            const todayStr = formatDateLocal(new Date());
+            const groups = {};
+
+            for (const item of data) {
+                const dStr = parseItemDate(item.date);
+                if (!dStr) continue;
+
+                if (!groups[dStr]) groups[dStr] = [];
+                groups[dStr].push(item);
+            }
+
+            // 1. 今日のキーワード描画
+            let todayHTML = "";
+            if (groups[todayStr]) {
+                groups[todayStr].forEach(item => { todayHTML += createCard(item, false); });
+            } else {
+                todayHTML = `<div class="keyword" style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">本日のキーワードデータはまだありません</div>`;
+            }
+            todayBox.innerHTML = todayHTML;
+
+            // 2. 過去履歴の描画 (直近3日間に制限)
+            let historyHTML = "";
+            const pastDates = Object.keys(groups)
+                .filter(date => date !== todayStr)
+                .sort()
+                .reverse()
+                .slice(0, 3); // 💡 ここで最新の3日間だけを抽出
+
+            if (pastDates.length > 0) {
+                pastDates.forEach(date => {
+                    historyHTML += `
+                        <div>
+                            <div class="history-day-title">📅 ${date.replace(/-/g, '/')}</div>
+                            <div class="box" style="margin-top: 10px;">
+                    `;
+                    groups[date].forEach(item => {
+                        historyHTML += createCard(item, true);
+                    });
+                    historyHTML += `</div></div>`;
+                });
+            } else {
+                historyHTML = `<div class="keyword" style="text-align: center; color: var(--text-muted);">過去3日間の履歴ログはありません</div>`;
+            }
+            historyBox.innerHTML = historyHTML;
+
+        } catch (e) {
+            todayBox.innerHTML = `<div class="keyword" style="grid-column: 1/-1; color: var(--red);">⚠️ システム同期エラー</div>`;
+            console.error(e);
+        }
+    }
+
+    function createCard(item, isHistory) {
+        let label = "その他";
+        let typeClass = "class";
+        let icon = "📝";
+        let rawText = "";
+
+        if (item.mode === "登校") {
+            icon = "🏫"; label = "登校"; typeClass = "in"; rawText = item.inKey;
+        } else if (item.mode === "下校") {
+            icon = "🏠"; label = "下校"; typeClass = "out"; rawText = item.outKey;
+        } else if (item.type === "授業") {
+            icon = "📚"; label = item.subject || "授業"; typeClass = "class"; rawText = item.lessonKey;
+        }
+
+        let displayText = rawText && rawText.trim() !== "" 
+            ? rawText 
+            : `<span class="empty-key">未登録</span>`;
+
+        return `
+            <div class="keyword">
+                <div class="keyword-header">
+                    <span class="badge ${typeClass}">${icon} ${label}</span>
+                </div>
+                <div class="keyword-body">
+                    ${displayText}
+                </div>
+            </div>
+        `;
+    }
+
+    tick();
+    setInterval(tick, 1000);
+    loadKeywords();
+
+    async function daemon() {
+        await loadKeywords();
+        setTimeout(daemon, 30000);
+    }
+    setTimeout(daemon, 30000);
 </script>
-
-
 </body>
-
 </html>
