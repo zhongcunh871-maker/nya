@@ -350,7 +350,7 @@
     // --- 連携するGASのURL（必要に応じて書き換えてください） ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
 
-    // --- 時間割設定 ---
+    // --- 3限のみの時間割設定 ---
     const schedule = [
         { name: "1限", start: "09:20", end: "10:10" },
         { name: "2限", start: "10:20", end: "11:10" },
@@ -461,7 +461,6 @@
         let errorDetail = "";
 
         try {
-            // CORS/タイムアウト制御
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 6000); // 6秒でタイムアウト
 
@@ -478,7 +477,6 @@
 
             const responseText = await res.text();
             
-            // JSONとして正しくパースできるかチェック
             try {
                 data = JSON.parse(responseText);
                 noticeEl.style.display = 'none';
@@ -493,17 +491,17 @@
             noticeEl.innerHTML = `⚠️ サーバー同期中（デモデータ稼働）<br><span style="font-size:10px; opacity:0.8;">理由: ${errorDetail}</span>`;
             noticeEl.style.display = 'block';
 
-            // GitHubで最初から正常動作させるためのフェイルセーフ（ダミーデータ）
+            // 3限制に合わせた安全なデモデータ
             const today = new Date();
             const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
             const dayBefore = new Date(today); dayBefore.setDate(dayBefore.getDate() - 2);
 
             data = [
-                { date: formatDateLocal(today), mode: "登校", inKey: "技術探求！" },
-                { date: formatDateLocal(today), type: "授業", subject: "プログラミング", lessonKey: "Git & GitHubの基本コマンドをマスターする" },
-                { date: formatDateLocal(yesterday), mode: "下校", outKey: "今日もお疲れ様でした！" },
-                { date: formatDateLocal(yesterday), type: "授業", subject: "情報デザイン", lessonKey: "サイバーUIの色彩設計とアニメーション" },
-                { date: formatDateLocal(dayBefore), type: "授業", subject: "数学", lessonKey: "三角関数と波形シミュレーション" }
+                { date: formatDateLocal(today), mode: "登校", inKey: "今日も元気よく！" },
+                { date: formatDateLocal(today), type: "授業", subject: "プログラミング", lessonKey: "JavaScript & HTMLタイマーの実装" },
+                { date: formatDateLocal(yesterday), mode: "下校", outKey: "3限終了、お疲れ様でした！" },
+                { date: formatDateLocal(yesterday), type: "授業", subject: "情報技術", lessonKey: "ネットワークセキュリティと暗号化" },
+                { date: formatDateLocal(dayBefore), type: "授業", subject: "基礎デザイン", lessonKey: "サイバーUIのグラデーション設計" }
             ];
         }
 
@@ -588,8 +586,7 @@
     setInterval(tick, 1000);
     loadKeywords();
 
-    // 多重でループが回らないよう整理された定期ポーリング
-    setInterval(loadKeywords, 45000); // 45秒間隔でGASから再読込
+    setInterval(loadKeywords, 45000); // 45秒間隔で再読込
 </script>
 </body>
 </html>
