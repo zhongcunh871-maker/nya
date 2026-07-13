@@ -268,7 +268,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* エラー・警告通知インジケーター */
+        /* システム同期情報エリア */
         .system-notice {
             font-size: 12px;
             color: var(--yellow);
@@ -347,10 +347,11 @@
 </div>
 
 <script>
-    // --- 連携するGASのURL（必要に応じて書き換えてください） ---
+    // --- 連携するGASのURL ---
+    // あなたのGASウェブアプリのURLに差し替えて、GitHub等にアップロード・保存してください。
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
 
-    // --- 3限のみの時間割設定 ---
+    // --- 3限制 授業時間割データ ---
     const schedule = [
         { name: "1限", start: "09:20", end: "10:10" },
         { name: "2限", start: "10:20", end: "11:10" },
@@ -380,7 +381,7 @@
         return `${y}-${m}-${d}`;
     }
 
-    // --- 1秒ごとのタイマー更新処理 ---
+    // --- タイマー計算処理 ---
     function tick() {
         const now = new Date();
         dateEl.textContent = now.toLocaleDateString("ja-JP", { dateStyle: "full" });
@@ -389,7 +390,7 @@
         const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
 
         let msg = "🎉 今日の授業はすべて終了しました";
-        let rem = "";
+        let rem = "お疲れ様でした！";
         let percent = 100;
         let left = 99999;
         let isBreak = false;
@@ -451,7 +452,7 @@
         return formatDateLocal(d);
     }
 
-    // --- キーワードデータ取得（GitHub Pages等でのエラーを防ぐ安全設計） ---
+    // --- キーワードデータ読み込み・安全フォールバック ---
     async function loadKeywords() {
         const todayBox = document.getElementById("today");
         const historyBox = document.getElementById("history");
@@ -481,27 +482,27 @@
                 data = JSON.parse(responseText);
                 noticeEl.style.display = 'none';
             } catch (jsonErr) {
-                console.error("取得したデータがJSON形式ではありません。応答データ:", responseText);
-                throw new Error("GASがJSONではなくHTML（エラー画面など）を返しました。");
+                console.error("データパース失敗。GAS応答:", responseText);
+                throw new Error("GASがJSON以外のデータを返しました（公開設定エラーの疑い）。");
             }
 
         } catch (e) {
-            console.warn("GASデータ通信未接続、またはCORS制限のため、ローカルのデモデータを使用します。エラー詳細:", e.message);
+            console.warn("GAS通信オフライン、またはCORS規制中。デモデータをセットします:", e.message);
             errorDetail = e.message;
-            noticeEl.innerHTML = `⚠️ サーバー同期中（デモデータ稼働）<br><span style="font-size:10px; opacity:0.8;">理由: ${errorDetail}</span>`;
+            noticeEl.innerHTML = `⚠️ サーバー非同期（デモデータ稼働中）<br><span style="font-size:10px; opacity:0.85;">事由: ${errorDetail}</span>`;
             noticeEl.style.display = 'block';
 
-            // 3限制に合わせた安全なデモデータ
+            // 3限スケジュールに調和したダミーデータ
             const today = new Date();
             const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
             const dayBefore = new Date(today); dayBefore.setDate(dayBefore.getDate() - 2);
 
             data = [
-                { date: formatDateLocal(today), mode: "登校", inKey: "今日も元気よく！" },
-                { date: formatDateLocal(today), type: "授業", subject: "プログラミング", lessonKey: "JavaScript & HTMLタイマーの実装" },
-                { date: formatDateLocal(yesterday), mode: "下校", outKey: "3限終了、お疲れ様でした！" },
-                { date: formatDateLocal(yesterday), type: "授業", subject: "情報技術", lessonKey: "ネットワークセキュリティと暗号化" },
-                { date: formatDateLocal(dayBefore), type: "授業", subject: "基礎デザイン", lessonKey: "サイバーUIのグラデーション設計" }
+                { date: formatDateLocal(today), mode: "登校", inKey: "本日も安全第一に登校しました" },
+                { date: formatDateLocal(today), type: "授業", subject: "プログラミング", lessonKey: "JavaScriptでつくる非同期処理Webアプリ開発" },
+                { date: formatDateLocal(yesterday), mode: "下校", outKey: "3限お疲れ様でした！また明日！" },
+                { date: formatDateLocal(yesterday), type: "授業", subject: "ウェブデザイン", lessonKey: "FlexboxとGridを活用したレスポンシブデザイン" },
+                { date: formatDateLocal(dayBefore), type: "授業", subject: "情報分析", lessonKey: "Git & GitHubを用いた効率的なバージョン管理手法" }
             ];
         }
 
@@ -516,7 +517,7 @@
             groups[dStr].push(item);
         }
 
-        // 1. 今日のキーワード描画
+        // 1. 今日のキーワード表示
         let todayHTML = "";
         if (groups[todayStr] && groups[todayStr].length > 0) {
             groups[todayStr].forEach(item => { todayHTML += createCard(item); });
@@ -525,7 +526,7 @@
         }
         todayBox.innerHTML = todayHTML;
 
-        // 2. 過去履歴の描画 (直近3日間)
+        // 2. 過去履歴表示 (直近3日)
         let historyHTML = "";
         const pastDates = Object.keys(groups)
             .filter(date => date !== todayStr)
@@ -546,7 +547,7 @@
                 historyHTML += `</div></div>`;
             });
         } else {
-            historyHTML = `<div class="keyword" style="text-align: center; color: var(--text-muted);">過去ログはまだありません</div>`;
+            historyHTML = `<div class="keyword" style="text-align: center; color: var(--text-muted);">過去3日間のデータ履歴はありません</div>`;
         }
         historyBox.innerHTML = historyHTML;
     }
@@ -581,12 +582,13 @@
         `;
     }
 
-    // --- バックグラウンド同期 ---
+    // --- 各種アップデートイベント ---
     tick();
     setInterval(tick, 1000);
     loadKeywords();
 
-    setInterval(loadKeywords, 45000); // 45秒間隔で再読込
+    // 45秒に1回GASとの定期通信を行う
+    setInterval(loadKeywords, 45000);
 </script>
 </body>
 </html>
