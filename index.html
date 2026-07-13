@@ -1,65 +1,1265 @@
 <!DOCTYPE html>
-<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>授業タイマー Ultimate</title>
+
 <style>
-:root{--bg1:#0f172a;--bg2:#1d4ed8;--ok:#22c55e;--warn:#f59e0b;--text:#fff}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui;background:linear-gradient(-45deg,var(--bg1),#1e3a8a,var(--bg2),#06b6d4);background-size:400% 400%;animation:bg 16s ease infinite;color:var(--text)}
-@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
-.wrap{max-width:900px;margin:24px auto;padding:18px}
-.card{background:rgba(255,255,255,.12);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.2);border-radius:28px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
-h1{text-align:center;margin:0 0 10px}.date{text-align:center;opacity:.9}.clock{text-align:center;font-size:clamp(48px,8vw,84px);font-weight:800}
-.status{text-align:center;font-size:34px;margin:8px}.remain{text-align:center;font-size:42px;font-weight:700;color:#fde68a}
-.progress{height:22px;background:#ffffff30;border-radius:99px;overflow:hidden;margin:18px 0}.fill{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#eab308,#ef4444);transition:width 1s}
-.pct{text-align:right}.panel{display:grid;gap:14px}.item{background:#ffffff18;border-radius:16px;padding:16px;font-size:21px}
-.flash{animation:f .8s infinite}@keyframes f{50%{opacity:.3}}
-.small{text-align:center;opacity:.8}
-</style></head><body><div class="wrap"><div class="card">
-<h1>📚 授業タイマー Ultimate</h1>
-<div class="date" id="date"></div>
-<div class="clock" id="clock"></div>
-<div class="status" id="status"></div>
-<div class="progress"><div class="fill" id="fill"></div></div>
-<div class="pct" id="pct"></div>
-<div class="remain" id="remain"></div>
-<div class="panel" id="keywords"><div class="item">読み込み中...</div></div>
-<div class="small">Google Apps Script連携</div>
-</div></div>
+
+:root{
+ --bg1:#020617;
+ --bg2:#1d4ed8;
+ --cyan:#06b6d4;
+ --green:#22c55e;
+ --yellow:#eab308;
+ --red:#ef4444;
+ --white:#fff;
+}
+
+*{
+ box-sizing:border-box;
+}
+
+body{
+ margin:0;
+ min-height:100vh;
+ font-family:
+ "Noto Sans JP",
+ system-ui,
+ sans-serif;
+
+ color:white;
+
+ background:
+ linear-gradient(
+  -45deg,
+  #020617,
+  #1e3a8a,
+  #2563eb,
+  #06b6d4
+ );
+
+ background-size:400% 400%;
+ animation:bgmove 15s ease infinite;
+}
+
+
+@keyframes bgmove{
+
+0%{
+ background-position:0% 50%;
+}
+
+50%{
+ background-position:100% 50%;
+}
+
+100%{
+ background-position:0% 50%;
+}
+
+}
+
+
+.container{
+
+max-width:1000px;
+margin:auto;
+padding:20px;
+
+}
+
+
+
+.card{
+
+background:
+rgba(255,255,255,.12);
+
+backdrop-filter:
+blur(20px);
+
+border:
+1px solid rgba(255,255,255,.25);
+
+border-radius:32px;
+
+padding:25px;
+
+box-shadow:
+0 30px 80px rgba(0,0,0,.45);
+
+}
+
+
+h1{
+
+text-align:center;
+
+font-size:
+clamp(28px,5vw,42px);
+
+margin:0;
+
+}
+
+
+
+.date{
+
+text-align:center;
+
+opacity:.8;
+
+margin-top:10px;
+
+}
+
+
+/* =====================
+ 円形タイマー
+===================== */
+
+
+.timer-area{
+
+display:flex;
+
+justify-content:center;
+
+margin:35px 0;
+
+}
+
+
+.circle{
+
+position:relative;
+
+width:280px;
+
+height:280px;
+
+}
+
+
+
+svg{
+
+transform:rotate(-90deg);
+
+}
+
+
+.circle-bg{
+
+fill:none;
+
+stroke:
+rgba(255,255,255,.15);
+
+stroke-width:18;
+
+}
+
+
+
+.circle-progress{
+
+fill:none;
+
+stroke:url(#gradient);
+
+stroke-width:18;
+
+stroke-linecap:round;
+
+transition:
+stroke-dashoffset 1s linear;
+
+}
+
+
+
+.timer-text{
+
+position:absolute;
+
+top:50%;
+
+left:50%;
+
+transform:
+translate(-50%,-50%);
+
+text-align:center;
+
+}
+
+
+.clock{
+
+font-size:42px;
+
+font-weight:900;
+
+}
+
+
+
+.remain{
+
+font-size:24px;
+
+color:#fde68a;
+
+font-weight:bold;
+
+}
+
+
+
+.status{
+
+text-align:center;
+
+font-size:28px;
+
+font-weight:bold;
+
+margin:20px;
+
+}
+
+
+
+.flash{
+
+animation:
+flash .8s infinite;
+
+}
+
+
+
+@keyframes flash{
+
+50%{
+opacity:.3;
+}
+
+}
+
+
+
+/* =====================
+ キーワード
+===================== */
+
+
+.section{
+
+margin-top:30px;
+
+}
+
+
+
+.section-title{
+
+font-size:26px;
+
+font-weight:bold;
+
+border-bottom:
+2px solid rgba(255,255,255,.3);
+
+padding-bottom:8px;
+
+}
+
+
+
+.keyword-box{
+
+display:grid;
+
+gap:12px;
+
+margin-top:15px;
+
+}
+
+
+
+.keyword-card{
+
+background:
+rgba(255,255,255,.12);
+
+padding:18px;
+
+border-radius:18px;
+
+}
+
+
+
+.today{
+
+border-left:
+5px solid #22c55e;
+
+}
+
+
+
+.history{
+
+border-left:
+5px solid #38bdf8;
+
+}
+
+
+
+.history-date{
+
+font-size:18px;
+
+color:#bae6fd;
+
+font-weight:bold;
+
+}
+
+
+
+
+/* LINE */
+
+.line-area{
+
+text-align:center;
+
+margin-top:35px;
+
+}
+
+
+.line-area img{
+
+height:50px;
+
+}
+
+
+
+.footer{
+
+text-align:center;
+
+opacity:.7;
+
+margin-top:20px;
+
+}
+
+
+/* スマホ */
+
+@media(max-width:600px){
+
+.circle{
+
+width:220px;
+
+height:220px;
+
+}
+
+
+.clock{
+
+font-size:32px;
+
+}
+
+
+.status{
+
+font-size:22px;
+
+}
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<div class="card">
+
+
+<h1>
+📚 授業タイマー Ultimate
+</h1>
+
+
+<div class="date" id="date">
+読み込み中
+</div>
+
+
+
+<!-- 円形タイマー -->
+
+
+<div class="timer-area">
+
+
+<div class="circle">
+
+
+<svg width="280" height="280">
+
+
+<defs>
+
+<linearGradient id="gradient">
+
+<stop offset="0%" stop-color="#22c55e"/>
+
+<stop offset="50%" stop-color="#eab308"/>
+
+<stop offset="100%" stop-color="#ef4444"/>
+
+</linearGradient>
+
+
+</defs>
+
+
+
+<circle
+class="circle-bg"
+cx="140"
+cy="140"
+r="110"
+/>
+
+
+<circle
+id="circleProgress"
+class="circle-progress"
+cx="140"
+cy="140"
+r="110"
+/>
+
+
+</svg>
+
+
+
+<div class="timer-text">
+
+<div class="clock" id="clock">
+00:00:00
+</div>
+
+
+<div class="remain" id="remain">
+待機中
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<div class="status" id="status">
+
+読み込み中...
+
+</div>
+
+
+
+<!-- 今日 -->
+
+<div class="section">
+
+
+<div class="section-title">
+
+📌 今日のキーワード
+
+</div>
+
+
+<div class="keyword-box" id="todayKeywords">
+
+読み込み中...
+
+</div>
+
+
+</div>
+
+
+
+<!-- 過去 -->
+
+<div class="section">
+
+
+<div class="section-title">
+
+📚 過去のキーワード履歴
+
+</div>
+
+
+<div class="keyword-box" id="historyKeywords">
+
+読み込み中...
+
+</div>
+
+
+</div>
+
+
+
+
+<!-- LINE -->
+
+<div class="line-area">
+
+<a href="https://lin.ee/YkfIPJ8">
+
+<img
+src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png"
+alt="友だち追加"
+border="0">
+
+</a>
+
+</div>
+
+
+
+<div class="footer">
+
+Google Apps Script 連携システム
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
 <script>
-const GAS_URL="https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
-const schedule=[{name:"1限",start:"09:20",end:"10:10"},{name:"2限",start:"10:20",end:"11:10"},{name:"3限",start:"11:20",end:"12:10"}];
-const S=t=>{let[a,b]=t.split(":").map(Number);return a*3600+b*60}
+
+const GAS_URL=
+"https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
+
+
+const schedule=[
+
+{
+name:"1限",
+start:"09:20",
+end:"10:10"
+},
+
+{
+name:"2限",
+start:"10:20",
+end:"11:10"
+},
+
+{
+name:"3限",
+start:"11:20",
+end:"12:10"
+}
+
+];
+
+
+/* ==========================
+   円形タイマー制御
+========================== */
+
+
+const circle =
+document.getElementById("circleProgress");
+
+
+const radius = 110;
+
+const circumference =
+2 * Math.PI * radius;
+
+
+circle.style.strokeDasharray =
+circumference;
+
+
+circle.style.strokeDashoffset =
+circumference;
+
+
+
+const S = time => {
+
+const [h,m] =
+time.split(":").map(Number);
+
+return h*3600+m*60;
+
+};
+
+
+
 let beeped=false;
-function beep(){try{let c=new(window.AudioContext||webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.05;o.start();o.stop(c.currentTime+.2);}catch{}}
-function tick(){
-const n=new Date(),sec=n.getHours()*3600+n.getMinutes()*60+n.getSeconds();
-date.textContent=n.toLocaleDateString("ja-JP",{dateStyle:"full"});
-clock.textContent=n.toLocaleTimeString("ja-JP");
-let st="🎉 今日の授業は終了しました",rm="",p=100,left=9999;
-document.body.style.filter="none";
-for(const l of schedule){
- let a=S(l.start),b=S(l.end);
- if(sec<a){left=a-sec;st="🕒 次は "+l.name;rm=`開始まで ${Math.floor(left/60)}分 ${String(left%60).padStart(2,"0")}秒`;p=0;break;}
- if(sec>=a&&sec<b){left=b-sec;st="📖 "+l.name+" 授業中";rm=`残り ${Math.floor(left/60)}分 ${String(left%60).padStart(2,"0")}秒`;p=(sec-a)/(b-a)*100;break;}
-}
-status.textContent=st;remain.textContent=rm;fill.style.width=p+"%";pct.textContent=Math.round(p)+"%";
-if(left<=300&&left>0){remain.classList.add("flash")}else{remain.classList.remove("flash")}
-if(left===60&&!beeped){beep();beeped=true}
-if(left>60)beeped=false;
-}
-async function load(){
+
+
+
+function beep(){
+
 try{
-const data=await(await fetch(GAS_URL)).json();
-const today=new Date().toLocaleDateString("sv-SE");
-let h="";
-for(const i of data){
- if(!i.date)continue;
- if(new Date(i.date).toLocaleDateString("sv-SE")!==today)continue;
- if(i.mode==="登校")h+=`<div class=item>🏫 <b>登校</b><br>${i.inKey}</div>`;
- if(i.type==="授業")h+=`<div class=item>📚 <b>${i.subject}</b><br>${i.lessonKey}</div>`;
- if(i.mode==="下校")h+=`<div class=item>🏠 <b>下校</b><br>${i.outKey}</div>`;
+
+const ctx =
+new(window.AudioContext ||
+window.webkitAudioContext)();
+
+
+const osc =
+ctx.createOscillator();
+
+
+const gain =
+ctx.createGain();
+
+
+
+osc.connect(gain);
+
+gain.connect(
+ctx.destination
+);
+
+
+osc.frequency.value=880;
+
+gain.gain.value=.08;
+
+
+osc.start();
+
+
+osc.stop(
+ctx.currentTime+.25
+);
+
+
+}catch(e){}
+
 }
-keywords.innerHTML=h||'<div class="item">🎌 本日は休日です</div>';
-}catch{keywords.innerHTML='<div class="item">⚠️ データ取得に失敗しました</div>';}
+
+
+
+
+function setCircle(percent){
+
+percent=
+Math.max(
+0,
+Math.min(
+100,
+percent
+)
+);
+
+
+const offset =
+circumference -
+(circumference * percent /100);
+
+
+circle.style.strokeDashoffset =
+offset;
+
+
 }
-tick();load();setInterval(tick,1000);setInterval(load,30000);
-</script></body></html>
+
+
+
+
+
+function tick(){
+
+const now =
+new Date();
+
+
+const sec =
+now.getHours()*3600+
+now.getMinutes()*60+
+now.getSeconds();
+
+
+
+date.textContent =
+now.toLocaleDateString(
+"ja-JP",
+{
+dateStyle:"full"
+}
+);
+
+
+
+clock.textContent =
+now.toLocaleTimeString(
+"ja-JP"
+);
+
+
+
+let statusText =
+"🎉 今日の授業は終了しました";
+
+
+let remainText =
+"";
+
+
+let progress =
+100;
+
+
+let left =
+99999;
+
+
+
+for(const lesson of schedule){
+
+
+const start =
+S(lesson.start);
+
+
+const end =
+S(lesson.end);
+
+
+
+/* 授業前 */
+
+if(sec < start){
+
+left =
+start-sec;
+
+
+statusText =
+"🕒 次は "+lesson.name;
+
+
+remainText =
+"開始まで "+
+Math.floor(left/60)+
+"分 "+
+String(left%60)
+.padStart(2,"0")+
+"秒";
+
+
+progress=0;
+
+
+break;
+
+}
+
+
+
+/* 授業中 */
+
+if(sec>=start && sec<end){
+
+
+left =
+end-sec;
+
+
+
+statusText =
+"📖 "+
+lesson.name+
+" 授業中";
+
+
+
+remainText =
+"残り "+
+Math.floor(left/60)+
+"分 "+
+String(left%60)
+.padStart(2,"0")+
+"秒";
+
+
+
+progress =
+((sec-start)/
+(end-start))*100;
+
+
+
+break;
+
+
+}
+
+
+}
+
+
+
+
+status.textContent =
+statusText;
+
+
+
+remain.textContent =
+remainText;
+
+
+
+setCircle(progress);
+
+
+
+if(left<=300){
+
+remain.classList.add(
+"flash"
+);
+
+}else{
+
+remain.classList.remove(
+"flash"
+);
+
+}
+
+
+
+
+// 1分前通知
+
+if(left===60 && !beeped){
+
+beep();
+
+beeped=true;
+
+}
+
+
+if(left>60){
+
+beeped=false;
+
+}
+
+
+}
+
+
+
+
+
+tick();
+
+
+setInterval(
+tick,
+1000
+);
+
+
+
+/* ==========================
+   GAS データ連携
+========================== */
+
+
+async function loadKeywords(){
+
+
+const todayBox =
+document.getElementById(
+"todayKeywords"
+);
+
+
+const historyBox =
+document.getElementById(
+"historyKeywords"
+);
+
+
+
+try{
+
+
+const response =
+await fetch(GAS_URL);
+
+
+
+const data =
+await response.json();
+
+
+
+const today =
+new Date()
+.toLocaleDateString(
+"sv-SE"
+);
+
+
+
+let todayHTML="";
+
+let historyHTML="";
+
+
+
+// 日付ごとに整理
+
+const groups={};
+
+
+
+for(const item of data){
+
+
+if(!item.date)
+continue;
+
+
+
+const date =
+new Date(item.date)
+.toLocaleDateString(
+"sv-SE"
+);
+
+
+
+if(!groups[date]){
+
+groups[date]=[];
+
+}
+
+
+
+groups[date].push(item);
+
+
+}
+
+
+
+
+/* ==================
+ 今日
+================== */
+
+
+if(groups[today]){
+
+
+for(const item of groups[today]){
+
+
+todayHTML += createKeywordCard(
+item,
+true
+);
+
+
+}
+
+
+}else{
+
+
+todayHTML =
+`
+<div class="keyword-card today">
+🎌 本日は登録されたキーワードがありません
+</div>
+`;
+
+}
+
+
+
+
+/* ==================
+ 過去履歴
+================== */
+
+
+const dates =
+Object.keys(groups)
+.sort()
+.reverse();
+
+
+
+for(const date of dates){
+
+
+if(date===today)
+continue;
+
+
+
+historyHTML +=
+`
+<div class="keyword-card history">
+
+<div class="history-date">
+
+📅 ${date}
+
+</div>
+
+`;
+
+
+
+for(const item of groups[date]){
+
+
+historyHTML +=
+createKeywordCard(
+item,
+false
+);
+
+
+}
+
+
+
+historyHTML +=
+`
+</div>
+`;
+
+}
+
+
+
+todayBox.innerHTML =
+todayHTML;
+
+
+historyBox.innerHTML =
+historyHTML ||
+`
+<div class="keyword-card history">
+まだ過去データがありません
+</div>
+`;
+
+
+
+}catch(error){
+
+
+
+todayBox.innerHTML=
+`
+<div class="keyword-card">
+⚠️ データ取得失敗
+</div>
+`;
+
+
+
+historyBox.innerHTML=
+"";
+
+
+
+console.error(error);
+
+
+
+}
+
+
+}
+
+
+
+
+/* ==========================
+ カード生成
+========================== */
+
+
+function createKeywordCard(
+item,
+today
+){
+
+
+let icon="";
+
+
+let title="";
+
+
+let text="";
+
+
+
+if(item.mode==="登校"){
+
+
+icon="🏫";
+
+title="登校";
+
+text=item.inKey || "";
+
+
+}
+
+
+
+else if(item.mode==="下校"){
+
+
+icon="🏠";
+
+title="下校";
+
+text=item.outKey || "";
+
+
+}
+
+
+
+else if(item.type==="授業"){
+
+
+icon="📚";
+
+title=item.subject || "授業";
+
+text=item.lessonKey || "";
+
+
+}
+
+
+
+else{
+
+
+icon="📝";
+
+title="その他";
+
+text=
+JSON.stringify(item);
+
+
+}
+
+
+
+
+return `
+
+<div style="
+margin-top:10px;
+padding:12px;
+background:
+rgba(255,255,255,.08);
+border-radius:14px;
+">
+
+${icon}
+
+<b>${title}</b>
+
+<br>
+
+${text}
+
+
+</div>
+
+`;
+
+}
+
+
+
+
+/* 初回取得 */
+
+loadKeywords();
+
+
+
+/* 30秒ごと更新 */
+
+setInterval(
+loadKeywords,
+30000
+);
+</script>
+
+</body>
+</html>
