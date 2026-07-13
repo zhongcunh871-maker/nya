@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>授業タイマー</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:sans-serif;background:linear-gradient(135deg,#4facfe,#00f2fe);padding:20px}
+.card{max-width:760px;margin:auto;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border-radius:24px;padding:24px;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+h1{text-align:center}.row{text-align:center;margin:8px 0}
+#clock{font-size:48px;font-weight:bold}#status{font-size:30px;font-weight:bold}
+#time{font-size:40px;color:#1976d2;font-weight:bold}
+.bar{height:16px;background:#ddd;border-radius:99px;overflow:hidden;margin:18px 0}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#43a047,#81c784);transition:width 1s}
+.item{background:#f7f7f7;border-radius:12px;padding:14px;margin:10px 0;font-size:22px}
+.holiday{text-align:center;color:#d32f2f;font-size:24px}
+</style></head>
+<body><div class="card">
+<h1>📚 今日の授業</h1>
+<div class="row" id="today"></div>
+<div class="row" id="clock"></div>
+<div class="row" id="status"></div>
+<div class="bar"><div class="fill" id="fill"></div></div>
+<div class="row" id="time"></div>
+<div id="keywords"></div>
+</div>
+<script>
+const GAS_URL="https://script.google.com/macros/s/AKfycbxKQU0nkigff43QcWPp9tEEtIFxH57Bn89c3qYH6Q2BZd-_z3L2DszNaPY2Ka6XlweZ/exec";
+const schedule=[{name:"1限",start:"09:20",end:"10:10"},{name:"2限",start:"10:20",end:"11:10"},{name:"3限",start:"11:20",end:"12:10"}];
+const s=t=>{let[a,b]=t.split(":").map(Number);return a*3600+b*60;}
+function tick(){
+let n=new Date(),sec=n.getHours()*3600+n.getMinutes()*60+n.getSeconds();
+document.getElementById("today").textContent=n.toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+document.getElementById("clock").textContent=n.toLocaleTimeString("ja-JP");
+let st="授業は終了しました",rm="",p=0;
+for(let l of schedule){
+ let a=s(l.start),b=s(l.end);
+ if(sec>=a&&sec<b){let left=b-sec;st="📖 "+l.name+" 授業中";rm=`⏳ 残り ${Math.floor(left/60)}分 ${String(left%60).padStart(2,"0")}秒`;p=((sec-a)/(b-a))*100;break;}
+ if(sec<a){let left=a-sec;st="🕒 次は "+l.name;rm=`開始まで ${Math.floor(left/60)}分 ${String(left%60).padStart(2,"0")}秒`;p=0;break;}
+}
+document.getElementById("status").textContent=st;
+document.getElementById("time").textContent=rm;
+document.getElementById("fill").style.width=p+"%";
+}
+async function loadKeywords(){
+try{
+let data=await (await fetch(GAS_URL)).json();
+let t=new Date().toLocaleDateString("sv-SE").replaceAll("-","/");
+let h="";
+data.filter(i=>i.date&&new Date(i.date).toLocaleDateString("sv-SE").replaceAll("-","/")==t).forEach(i=>{
+if(i.mode==="登校")h+=`<div class=item>🏫 登校：${i.inKey}</div>`;
+if(i.type==="授業")h+=`<div class=item>📚 ${i.subject}<br><b>${i.lessonKey}</b></div>`;
+if(i.mode==="下校")h+=`<div class=item>🏠 下校：${i.outKey}</div>`;
+});
+document.getElementById("keywords").innerHTML=h||'<div class="holiday">🎌 本日は休日です</div>';
+}catch(e){document.getElementById("keywords").innerHTML='<div class="holiday">読み込みエラー</div>';}
+}
+tick();loadKeywords();setInterval(tick,1000);setInterval(loadKeywords,30000);
+</script></body></html>
